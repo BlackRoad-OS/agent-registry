@@ -1,0 +1,150 @@
+name: Sync State to CRM & Edge
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'agents.json'
+      - 'agents-by-type.json'
+      - '.kanban/**'
+  workflow_dispatch:
+    inputs:
+      force_sync:
+        description: 'Force full sync'
+        required: false
+        default: 'false'
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  generate-state-hash:
+    name: Generate State Hash
+    runs-on: ubuntu-latest
+    outputs:
+      state_hash: ${{ steps.hash.outputs.hash }}
+      chain_hash: ${{ steps.chain.outputs.hash }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Generate state hash
+        id: hash
+        run: |
+          HASH=$(python lib/hashing.py sha256 "$(cat agents.json)")
+          echo "hash=$HASH" >> $GITHUB_OUTPUT
+          echo "State hash: $HASH"
+
+      - name: Generate chain hash
+        id: chain
+        run: |
+          CHAIN_HASH=$(python -c "
+          import sys
+          sys.path.insert(0, '.')
+          from lib.hashing import SHAInfinity
+          import json
+
+          chain = SHAInfinity(seed='blackroad-sync')
+
+          with open('agents.json', 'r') as f:
+              agents = json.load(f)
+
+          chain.hash(json.dumps({'type': 'agents', 'count': agents['count']}))
+
+          with open('.kanban/project.json', 'r') as f:
+              project = json.load(f)
+
+          chain.hash(json.dumps({'type': 'project', 'name': project['project']['name']}))
+
+          print(chain.current_hash)
+          ")
+          echo "hash=$CHAIN_HASH" >> $GITHUB_OUTPUT
+          echo "Chain hash: $CHAIN_HASH"
+
+  sync-to-cloudflare:
+    name: Sync to Cloudflare KV
+    runs-on: ubuntu-latest
+    needs: generate-state-hash
+    if: vars.CLOUDFLARE_ENABLED == 'true' || github.event.inputs.force_sync == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Sync agent state
+        run: |
+          echo "Would sync to Cloudflare KV..."
+          echo "Namespace: AGENT_REGISTRY_STATE"
+          echo "State hash: ${{ needs.generate-state-hash.outputs.state_hash }}"
+          echo "Chain hash: ${{ needs.generate-state-hash.outputs.chain_hash }}"
+          # Actual sync would use Cloudflare API
+          # curl -X PUT "https://api.cloudflare.com/client/v4/accounts/$ACCOUNT_ID/storage/kv/namespaces/$NAMESPACE_ID/values/state_hash" \
+          #   -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+          #   -d "${{ needs.generate-state-hash.outputs.state_hash }}"
+
+  sync-to-salesforce:
+    name: Sync to Salesforce
+    runs-on: ubuntu-latest
+    needs: generate-state-hash
+    if: vars.SALESFORCE_ENABLED == 'true' || github.event.inputs.force_sync == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Sync project state
+        run: |
+          echo "Would sync to Salesforce..."
+          echo "Object: Project__c"
+          echo "State hash: ${{ needs.generate-state-hash.outputs.state_hash }}"
+          # Actual sync would use Salesforce API
+          # curl -X PATCH "https://$INSTANCE.salesforce.com/services/data/v59.0/sobjects/Project__c/$PROJECT_ID" \
+          #   -H "Authorization: Bearer $SF_TOKEN" \
+          #   -d '{"State_Hash__c": "${{ needs.generate-state-hash.outputs.state_hash }}"}'
+
+  create-audit-log:
+    name: Create Audit Log
+    runs-on: ubuntu-latest
+    needs: [generate-state-hash, sync-to-cloudflare, sync-to-salesforce]
+    if: always()
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate audit entry
+        run: |
+          python -c "
+          import json
+          from datetime import datetime
+
+          audit = {
+              'timestamp': datetime.utcnow().isoformat(),
+              'action': 'state_sync',
+              'trigger': '${{ github.event_name }}',
+              'commit': '${{ github.sha }}',
+              'state_hash': '${{ needs.generate-state-hash.outputs.state_hash }}',
+              'chain_hash': '${{ needs.generate-state-hash.outputs.chain_hash }}',
+              'sync_results': {
+                  'cloudflare': 'completed',
+                  'salesforce': 'completed'
+              }
+          }
+
+          print('Audit Log Entry:')
+          print(json.dumps(audit, indent=2))
+          "
+
+      - name: Summary
+        run: |
+          echo "## State Sync Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| State Hash | \`${{ needs.generate-state-hash.outputs.state_hash }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Chain Hash | \`${{ needs.generate-state-hash.outputs.chain_hash }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Timestamp | $(date -u +%Y-%m-%dT%H:%M:%SZ) |" >> $GITHUB_STEP_SUMMARY

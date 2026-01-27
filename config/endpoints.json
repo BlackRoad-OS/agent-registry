@@ -1,0 +1,322 @@
+{
+  "version": "1.0.0",
+  "description": "API endpoint configurations for all integrated services",
+  "endpoints": {
+    "cloudflare": {
+      "name": "Cloudflare",
+      "base_url": "https://api.cloudflare.com/client/v4",
+      "auth_type": "bearer",
+      "auth_env": "CLOUDFLARE_API_TOKEN",
+      "services": {
+        "workers": {
+          "path": "/accounts/{account_id}/workers",
+          "methods": ["GET", "POST", "PUT", "DELETE"]
+        },
+        "kv": {
+          "path": "/accounts/{account_id}/storage/kv/namespaces",
+          "methods": ["GET", "POST", "PUT", "DELETE"]
+        },
+        "r2": {
+          "path": "/accounts/{account_id}/r2/buckets",
+          "methods": ["GET", "POST", "DELETE"]
+        },
+        "pages": {
+          "path": "/accounts/{account_id}/pages/projects",
+          "methods": ["GET", "POST", "PATCH", "DELETE"]
+        },
+        "dns": {
+          "path": "/zones/{zone_id}/dns_records",
+          "methods": ["GET", "POST", "PUT", "DELETE"]
+        }
+      },
+      "rate_limit": {
+        "requests_per_minute": 1200
+      }
+    },
+    "salesforce": {
+      "name": "Salesforce CRM",
+      "base_url": "https://{instance}.salesforce.com/services/data/v59.0",
+      "auth_type": "oauth2",
+      "auth_env": {
+        "client_id": "SALESFORCE_CLIENT_ID",
+        "client_secret": "SALESFORCE_CLIENT_SECRET",
+        "refresh_token": "SALESFORCE_REFRESH_TOKEN"
+      },
+      "services": {
+        "sobjects": {
+          "path": "/sobjects",
+          "methods": ["GET", "POST", "PATCH", "DELETE"]
+        },
+        "query": {
+          "path": "/query",
+          "methods": ["GET"]
+        },
+        "composite": {
+          "path": "/composite",
+          "methods": ["POST"]
+        },
+        "tooling": {
+          "path": "/tooling",
+          "methods": ["GET", "POST"]
+        }
+      },
+      "objects": {
+        "Agent__c": {
+          "fields": ["Name", "Type__c", "Status__c", "Capabilities__c", "Memory_Hash__c"]
+        },
+        "Task__c": {
+          "fields": ["Name", "Status__c", "Assigned_Agent__c", "Priority__c", "Hash__c"]
+        },
+        "Project__c": {
+          "fields": ["Name", "Board_Id__c", "Sync_Status__c"]
+        }
+      }
+    },
+    "vercel": {
+      "name": "Vercel",
+      "base_url": "https://api.vercel.com",
+      "auth_type": "bearer",
+      "auth_env": "VERCEL_TOKEN",
+      "services": {
+        "deployments": {
+          "path": "/v13/deployments",
+          "methods": ["GET", "POST", "DELETE"]
+        },
+        "projects": {
+          "path": "/v9/projects",
+          "methods": ["GET", "POST", "PATCH", "DELETE"]
+        },
+        "domains": {
+          "path": "/v5/domains",
+          "methods": ["GET", "POST", "DELETE"]
+        },
+        "env": {
+          "path": "/v10/projects/{projectId}/env",
+          "methods": ["GET", "POST", "PATCH", "DELETE"]
+        },
+        "edge_config": {
+          "path": "/v1/edge-config",
+          "methods": ["GET", "POST", "PATCH", "DELETE"]
+        }
+      }
+    },
+    "digitalocean": {
+      "name": "DigitalOcean",
+      "base_url": "https://api.digitalocean.com/v2",
+      "auth_type": "bearer",
+      "auth_env": "DIGITALOCEAN_TOKEN",
+      "services": {
+        "droplets": {
+          "path": "/droplets",
+          "methods": ["GET", "POST", "DELETE"]
+        },
+        "apps": {
+          "path": "/apps",
+          "methods": ["GET", "POST", "PUT", "DELETE"]
+        },
+        "databases": {
+          "path": "/databases",
+          "methods": ["GET", "POST", "PUT", "DELETE"]
+        },
+        "kubernetes": {
+          "path": "/kubernetes/clusters",
+          "methods": ["GET", "POST", "PUT", "DELETE"]
+        },
+        "spaces": {
+          "path": "/spaces",
+          "methods": ["GET", "POST", "DELETE"]
+        },
+        "functions": {
+          "path": "/functions/namespaces",
+          "methods": ["GET", "POST", "DELETE"]
+        }
+      }
+    },
+    "claude": {
+      "name": "Claude API (Anthropic)",
+      "base_url": "https://api.anthropic.com",
+      "auth_type": "api_key",
+      "auth_env": "ANTHROPIC_API_KEY",
+      "headers": {
+        "anthropic-version": "2024-01-01"
+      },
+      "services": {
+        "messages": {
+          "path": "/v1/messages",
+          "methods": ["POST"]
+        },
+        "completions": {
+          "path": "/v1/complete",
+          "methods": ["POST"]
+        }
+      },
+      "models": [
+        "claude-opus-4-5-20251101",
+        "claude-sonnet-4-20250514",
+        "claude-3-5-sonnet-20241022",
+        "claude-3-5-haiku-20241022"
+      ]
+    },
+    "github": {
+      "name": "GitHub",
+      "base_url": "https://api.github.com",
+      "auth_type": "bearer",
+      "auth_env": "GITHUB_TOKEN",
+      "services": {
+        "repos": {
+          "path": "/repos/{owner}/{repo}",
+          "methods": ["GET", "POST", "PATCH", "DELETE"]
+        },
+        "issues": {
+          "path": "/repos/{owner}/{repo}/issues",
+          "methods": ["GET", "POST", "PATCH"]
+        },
+        "pulls": {
+          "path": "/repos/{owner}/{repo}/pulls",
+          "methods": ["GET", "POST", "PATCH"]
+        },
+        "projects": {
+          "path": "/projects",
+          "methods": ["GET", "POST", "PATCH", "DELETE"]
+        },
+        "actions": {
+          "path": "/repos/{owner}/{repo}/actions",
+          "methods": ["GET", "POST"]
+        }
+      }
+    },
+    "termius": {
+      "name": "Termius",
+      "base_url": "https://api.termius.com/api/v3",
+      "auth_type": "bearer",
+      "auth_env": "TERMIUS_API_KEY",
+      "services": {
+        "hosts": {
+          "path": "/hosts",
+          "methods": ["GET", "POST", "PUT", "DELETE"]
+        },
+        "groups": {
+          "path": "/groups",
+          "methods": ["GET", "POST", "PUT", "DELETE"]
+        },
+        "keys": {
+          "path": "/ssh_keys",
+          "methods": ["GET", "POST", "DELETE"]
+        },
+        "snippets": {
+          "path": "/snippets",
+          "methods": ["GET", "POST", "PUT", "DELETE"]
+        }
+      }
+    },
+    "raspberry_pi": {
+      "name": "Raspberry Pi Endpoints",
+      "description": "Self-hosted Pi endpoints for edge computing",
+      "base_url": "https://{pi_hostname}.local",
+      "auth_type": "api_key",
+      "auth_env": "PI_API_KEY",
+      "services": {
+        "gpio": {
+          "path": "/api/gpio",
+          "methods": ["GET", "POST"]
+        },
+        "sensors": {
+          "path": "/api/sensors",
+          "methods": ["GET"]
+        },
+        "status": {
+          "path": "/api/status",
+          "methods": ["GET"]
+        },
+        "execute": {
+          "path": "/api/execute",
+          "methods": ["POST"]
+        },
+        "agents": {
+          "path": "/api/agents",
+          "methods": ["GET", "POST", "PUT"]
+        }
+      },
+      "nodes": [
+        {"id": "pi-001", "hostname": "blackroad-pi-1", "role": "coordinator"},
+        {"id": "pi-002", "hostname": "blackroad-pi-2", "role": "worker"},
+        {"id": "pi-003", "hostname": "blackroad-pi-3", "role": "worker"}
+      ]
+    },
+    "ios_apps": {
+      "ish": {
+        "name": "iSH Shell",
+        "description": "iOS Linux shell environment",
+        "protocol": "x-ish://",
+        "capabilities": ["shell", "python", "git"],
+        "sync_path": "~/agent-registry"
+      },
+      "shellfish": {
+        "name": "Shellfish",
+        "description": "iOS SSH/SFTP client",
+        "protocol": "shellfish://",
+        "auth_type": "ssh_key",
+        "capabilities": ["ssh", "sftp", "mosh"]
+      },
+      "working_copy": {
+        "name": "Working Copy",
+        "description": "iOS Git client",
+        "protocol": "working-copy://",
+        "capabilities": ["git", "clone", "push", "pull", "branch"],
+        "repo_sync": true
+      },
+      "pyto": {
+        "name": "Pyto",
+        "description": "iOS Python IDE",
+        "protocol": "pyto://",
+        "capabilities": ["python", "numpy", "pandas", "scripts"],
+        "scripts_path": "~/Documents/agent-registry"
+      }
+    },
+    "agent_registry": {
+      "name": "BlackRoad Agent Registry",
+      "base_url": "https://cmd.blackroad.io",
+      "services": {
+        "agents": {
+          "path": "/agents",
+          "methods": ["GET", "POST", "PUT", "DELETE"]
+        },
+        "agents_by_id": {
+          "path": "/agents/{agent_id}",
+          "methods": ["GET", "PATCH", "DELETE"]
+        },
+        "agents_by_type": {
+          "path": "/agents/type/{type}",
+          "methods": ["GET"]
+        },
+        "tasks": {
+          "path": "/tasks",
+          "methods": ["GET", "POST"]
+        },
+        "assign": {
+          "path": "/agents/{agent_id}/assign",
+          "methods": ["POST"]
+        },
+        "kanban": {
+          "path": "/kanban",
+          "methods": ["GET", "POST", "PUT"]
+        },
+        "sync": {
+          "path": "/sync",
+          "methods": ["POST"]
+        }
+      }
+    }
+  },
+  "health_checks": {
+    "interval": 60,
+    "timeout": 10,
+    "endpoints": [
+      {"name": "cloudflare", "url": "https://api.cloudflare.com/client/v4/user/tokens/verify"},
+      {"name": "vercel", "url": "https://api.vercel.com/v2/user"},
+      {"name": "digitalocean", "url": "https://api.digitalocean.com/v2/account"},
+      {"name": "github", "url": "https://api.github.com/user"},
+      {"name": "anthropic", "url": "https://api.anthropic.com/v1/messages"}
+    ]
+  }
+}

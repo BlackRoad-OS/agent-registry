@@ -1,0 +1,48 @@
+{
+  "cards": [],
+  "schema": {
+    "card": {
+      "id": "string:uuid",
+      "title": "string:required",
+      "description": "string",
+      "column": "string:required",
+      "board": "string:required",
+      "priority": "enum:critical,high,medium,low",
+      "labels": "array:string",
+      "assigned_agents": "array:agent_id",
+      "created_at": "datetime",
+      "updated_at": "datetime",
+      "due_date": "datetime",
+      "hash": "string:sha256",
+      "hash_chain": "array:sha256",
+      "metadata": {
+        "pr_number": "number",
+        "issue_number": "number",
+        "salesforce_id": "string",
+        "cloudflare_key": "string"
+      }
+    }
+  },
+  "templates": {
+    "feature": {
+      "labels": ["feature", "enhancement"],
+      "priority": "medium",
+      "required_agents": ["architect", "engineer", "builder"]
+    },
+    "bugfix": {
+      "labels": ["bug", "fix"],
+      "priority": "high",
+      "required_agents": ["analyst", "engineer", "guardian"]
+    },
+    "documentation": {
+      "labels": ["docs"],
+      "priority": "low",
+      "required_agents": ["creative", "linguist", "speaker"]
+    },
+    "security": {
+      "labels": ["security", "critical"],
+      "priority": "critical",
+      "required_agents": ["guardian", "analyst", "researcher"]
+    }
+  }
+}

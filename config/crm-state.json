@@ -1,0 +1,97 @@
+{
+  "version": "1.0.0",
+  "description": "CRM state management configuration - Salesforce as source of truth, Cloudflare KV for edge state",
+  "state_management": {
+    "primary": {
+      "provider": "salesforce",
+      "role": "source_of_truth",
+      "objects": {
+        "agents": "Agent__c",
+        "tasks": "Task__c",
+        "projects": "Project__c",
+        "kanban_cards": "Kanban_Card__c",
+        "audit_log": "Audit_Log__c"
+      },
+      "sync_direction": "bidirectional"
+    },
+    "edge_cache": {
+      "provider": "cloudflare_kv",
+      "role": "edge_state",
+      "namespaces": {
+        "AGENT_STATE": {
+          "description": "Current agent status and assignments",
+          "ttl": 300
+        },
+        "TASK_STATE": {
+          "description": "Task progress and metadata",
+          "ttl": 60
+        },
+        "KANBAN_STATE": {
+          "description": "Board and card positions",
+          "ttl": 30
+        },
+        "HASH_CHAIN": {
+          "description": "SHA256 hash chain for verification",
+          "ttl": null
+        }
+      }
+    },
+    "git": {
+      "provider": "github",
+      "role": "file_storage",
+      "sync_items": [
+        "agents.json",
+        "agents-by-type.json",
+        ".kanban/project.json",
+        ".kanban/cards.json"
+      ]
+    }
+  },
+  "sync_rules": {
+    "salesforce_to_cloudflare": {
+      "trigger": "on_change",
+      "delay_ms": 100,
+      "batch_size": 50
+    },
+    "cloudflare_to_git": {
+      "trigger": "on_commit",
+      "requires_hash_verification": true
+    },
+    "git_to_salesforce": {
+      "trigger": "on_merge",
+      "create_audit_log": true
+    }
+  },
+  "conflict_resolution": {
+    "strategy": "salesforce_wins",
+    "fallback": "latest_timestamp",
+    "require_manual": ["delete", "schema_change"]
+  },
+  "audit": {
+    "enabled": true,
+    "log_to": ["salesforce", "cloudflare_kv"],
+    "retention_days": 365,
+    "hash_verification": true
+  },
+  "schemas": {
+    "agent_state": {
+      "agent_id": "string",
+      "name": "string",
+      "type": "string",
+      "status": "enum:active,busy,idle,offline",
+      "current_task": "string|null",
+      "last_seen": "datetime",
+      "memory_hash": "string",
+      "state_hash": "string"
+    },
+    "task_state": {
+      "task_id": "string",
+      "title": "string",
+      "status": "enum:pending,assigned,in_progress,review,completed",
+      "assigned_agents": "array",
+      "column": "string",
+      "hash": "string",
+      "hash_chain": "array"
+    }
+  }
+}
