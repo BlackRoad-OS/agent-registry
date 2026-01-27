@@ -91,7 +91,17 @@ def generate_agent(idx):
     }
 
 def main():
-    agents = [generate_agent(i) for i in range(1, 1001)]
+    # Generate agents with unique names
+    agents = []
+    used_names = set()
+    idx = 1
+
+    while len(agents) < 1000:
+        agent = generate_agent(idx)
+        if agent["name"] not in used_names:
+            used_names.add(agent["name"])
+            agents.append(agent)
+            idx += 1
     
     # Save full registry
     with open("agents.json", "w") as f:
