@@ -1,0 +1,68 @@
+name: Security — Audit & Scan
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  schedule:
+    - cron: "0 6 * * 1"  # Weekly Monday 6 AM UTC
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  audit-worker:
+    name: Audit Worker Dependencies
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: worker
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af  # v4.1.0
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: npm audit --omit=dev || true
+
+  scan-secrets:
+    name: Scan for Secrets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Scan for hardcoded secrets
+        run: |
+          echo "Scanning for potential secrets..."
+          PATTERNS='(CLOUDFLARE_API_TOKEN|CF_ACCOUNT_ID|sk_live_|sk_test_|STRIPE_SECRET|password\s*=\s*["\x27][^\s]+["\x27])'
+          if grep -rPn "$PATTERNS" --include="*.js" --include="*.py" --include="*.json" --include="*.toml" --include="*.yml" --include="*.yaml" . 2>/dev/null | grep -v node_modules | grep -v '.git/'; then
+            echo "WARNING: Potential secrets found in source code"
+            exit 1
+          else
+            echo "No secrets detected"
+          fi
+
+  validate-json:
+    name: Validate JSON Integrity
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+
+      - name: Validate JSON files
+        run: |
+          for f in agents.json agents-by-type.json; do
+            python3 -c "import json; json.load(open('$f'))" && echo "OK: $f" || { echo "FAIL: $f"; exit 1; }
+          done

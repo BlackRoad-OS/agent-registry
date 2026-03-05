@@ -1,0 +1,71 @@
+name: CI — Validate Agent Registry
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+jobs:
+  validate-agents:
+    name: Validate Agent Data
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af  # v4.1.0
+        with:
+          node-version: "20"
+
+      - name: Run agent data tests
+        run: node worker/test/worker.test.js
+
+  validate-python:
+    name: Validate Generator Script
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+
+      - name: Setup Python
+        uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b  # v5.3.0
+        with:
+          python-version: "3.12"
+
+      - name: Validate generator syntax
+        run: python -m py_compile generate-agents.py
+
+      - name: Verify agents.json integrity
+        run: python -c "
+import json, sys
+with open('agents.json') as f:
+    data = json.load(f)
+assert data['count'] == 1000, f'Expected 1000 agents, got {data[\"count\"]}'
+assert len(data['agents']) == 1000, f'Expected 1000 entries, got {len(data[\"agents\"])}'
+types = set(a['type'] for a in data['agents'])
+assert len(types) == 20, f'Expected 20 types, got {len(types)}'
+print(f'OK: {data[\"count\"]} agents, {len(types)} types')
+"
+
+  lint-worker:
+    name: Lint Worker Code
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: worker
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af  # v4.1.0
+        with:
+          node-version: "20"
+
+      - name: Validate worker syntax
+        run: node -c src/index.js

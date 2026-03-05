@@ -1,0 +1,8 @@
+# BlackRoad Agent Registry — Code Owners
+# All changes require review from core maintainers
+
+* @BlackRoad-OS/core
+*.json @BlackRoad-OS/core
+worker/ @BlackRoad-OS/core
+.github/ @BlackRoad-OS/core
+LICENSE @BlackRoad-OS/core

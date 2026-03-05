@@ -1,0 +1,58 @@
+name: Deploy — Cloudflare Worker
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "worker/**"
+      - "agents.json"
+      - "agents-by-type.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: deploy-worker
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to Cloudflare
+    runs-on: ubuntu-latest
+    environment: production
+    defaults:
+      run:
+        working-directory: worker
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af  # v4.1.0
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests before deploy
+        run: node test/worker.test.js
+
+      - name: Deploy Worker
+        uses: cloudflare/wrangler-action@da0e0e6f1e51fb3e0c3a54071084753bd2b10cef  # v3.14.0
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          workingDirectory: worker
+
+      - name: Verify deployment
+        run: |
+          sleep 5
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://cmd.blackroad.io/health)
+          if [ "$STATUS" = "200" ]; then
+            echo "Deployment verified — health check passed"
+          else
+            echo "Warning: Health check returned $STATUS"
+          fi
