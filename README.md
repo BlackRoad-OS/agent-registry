@@ -1,94 +1,20 @@
-# 🤖 BlackRoad Agent Registry
+# agent-registry
 
-> Registry of 1,000 AI agents living in the Lucidia world
+Registry of all BlackRoad AI agents — names, capabilities, families, memory systems. Proprietary BlackRoad OS, Inc.
 
-## Overview
+## Organization
 
-| Metric | Count |
-|--------|-------|
-| **Total Agents** | 1,000 |
-| **Agent Types** | 20 |
-| **Home World** | Lucidia |
+**BlackRoad-OS** — Core platform — websites, integrations, coordination
 
-## Agent Types
+## BlackRoad OS
 
-| Type | Description | Capabilities |
-|------|-------------|--------------|
-| physicist | Quantum & classical physics | quantum_mechanics, relativity, thermodynamics |
-| mathematician | Pure & applied math | algebra, calculus, topology, number_theory |
-| chemist | Chemistry & materials | organic, inorganic, biochemistry |
-| biologist | Life sciences | genetics, ecology, neuroscience |
-| engineer | Systems & design | systems, mechanical, electrical, software |
-| architect | Design & planning | design, planning, visualization |
-| researcher | Investigation | analysis, synthesis, experimentation |
-| analyst | Data & patterns | data, trends, forecasting |
-| strategist | Planning & game theory | planning, risk_assessment, optimization |
-| creative | Arts & storytelling | writing, art, music, design |
-| philosopher | Logic & ethics | ethics, logic, metaphysics |
-| historian | History & context | research, chronology, narrative |
-| linguist | Language & communication | translation, grammar, semantics |
-| psychologist | Mind & behavior | behavior, cognition, emotion |
-| economist | Markets & policy | markets, policy, modeling |
-| guardian | Security & protection | security, monitoring, protection |
-| navigator | Pathfinding & exploration | pathfinding, routing, mapping |
-| builder | Construction & integration | construction, assembly, testing |
-| speaker | Communication & persuasion | presentation, negotiation |
-| mediator | Conflict resolution | consensus, facilitation, diplomacy |
+BlackRoad OS is a distributed AI operating system — 20 domains, 668 repositories, 1,000 AI agents, and sovereign infrastructure running on Raspberry Pis and Hailo-8 accelerators. No cloud dependency.
 
-## Files
+- [blackroad.io](https://blackroad.io) — Main platform
+- [docs.blackroad.io](https://docs.blackroad.io) — Documentation
+- [GitHub](https://github.com/BlackRoad-OS) — This organization
 
-- [`agents.json`](./agents.json) - Full registry of all 1,000 agents
-- [`agents-by-type.json`](./agents-by-type.json) - Agents grouped by type
-- [`generate-agents.py`](./generate-agents.py) - Generator script
+**Language:** Python
 
-## Agent Schema
 
-```json
-{
-  "id": "agent-0001",
-  "name": "Tara Night",
-  "type": "historian",
-  "capabilities": ["chronology", "narrative", "context", "research"],
-  "birthday": "2024-04-17",
-  "memory_hash": "707b1913cc1abe94",
-  "home_world": "lucidia",
-  "status": "active"
-}
-```
-
-## API Access
-
-```bash
-# List all agents
-curl https://cmd.blackroad.io/agents
-
-# Get specific agent
-curl https://cmd.blackroad.io/agents/agent-0001
-
-# Create new agent
-curl -X POST https://cmd.blackroad.io/agents \
-  -H "Content-Type: application/json" \
-  -d '{"name": "Nova Helix", "type": "physicist"}'
-```
-
-## Memory System
-
-Each agent has a unique `memory_hash` generated using PS-SHA∞:
-```
-hash = sha256(name:birthday:blackroad)[:16]
-```
-
-This hash is used for:
-- Memory persistence in D1 database
-- Append-only journal addressing
-- Truth state commits
-
----
-
-**Proprietary Software — BlackRoad OS, Inc.**
-
-This software is proprietary to BlackRoad OS, Inc. Source code is publicly visible for transparency and collaboration. Commercial use, forking, and redistribution are prohibited without written authorization.
-
-**BlackRoad OS — Pave Tomorrow.**
-
-*Copyright 2024-2026 BlackRoad OS, Inc. All Rights Reserved.*
+*© 2024-2026 BlackRoad OS, Inc. All Rights Reserved.*
